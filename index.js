@@ -3,13 +3,14 @@ const fs = require("fs");
 const path = require("path");
 
 async function testConnection() {
+  // Load DigitalOcean CA certificate
   const ca = fs.readFileSync(path.join(__dirname, "do-ca.pem")).toString();
 
   const client = new Client({
     connectionString: process.env.DATABASE_URL,
     ssl: {
-      ca,
-      rejectUnauthorized: true,  // because now we provide the CA
+      ca,                   // Validate DO’s private CA
+      rejectUnauthorized: true,
     }
   });
 

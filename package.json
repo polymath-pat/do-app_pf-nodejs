@@ -1,6 +1,7 @@
 {
   "name": "do-db-test",
   "version": "1.0.0",
+  "description": "DigitalOcean App Platform → Managed DB connectivity test",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
