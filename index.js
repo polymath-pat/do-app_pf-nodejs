@@ -1,11 +1,15 @@
 const { Client } = require("pg");
+const fs = require("fs");
+const path = require("path");
 
 async function testConnection() {
+  const caCert = fs.readFileSync(path.join(__dirname, "do-ca.pem")).toString();
+
   const client = new Client({
     connectionString: process.env.DATABASE_URL,
     ssl: {
-      require: true,
-      rejectUnauthorized: false
+      ca: caCert,
+      rejectUnauthorized: true,   // NOW we can safely require real validation
     }
   });
 
@@ -26,4 +30,3 @@ async function testConnection() {
 }
 
 testConnection();
-
