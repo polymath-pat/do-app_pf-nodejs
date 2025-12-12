@@ -29,10 +29,23 @@ Fork or upload the contents of this repository to your own GitHub account.
 2. Choose your GitHub repository
 3. DigitalOcean will auto-detect Node.js
 4. Under **Resources**, click **Add Database**
-5. Select your Managed PostgreSQL cluster  
+5. Select your Managed PostgreSQL cluster
    > This automatically injects `DATABASE_URL` and adds Trusted Sources.
 
-### 3. Deploy
+### 3. Configure Environment Variables
+
+**IMPORTANT:** You must manually add the database CA certificate variable:
+
+1. Go to **Settings** → **App-Level Environment Variables** (or component settings)
+2. Click **Edit**
+3. Add a new environment variable:
+   - **Key:** `DATABASE_CA_CERT`
+   - **Value:** `${db.CA_CERT}` (or `${your-db-name.CA_CERT}` if your database has a different name)
+4. Click **Save**
+
+> **Note:** Find your database component name in the **Resources** tab.
+
+### 4. Deploy
 
 Click **Deploy** and wait for the build to complete.
 

@@ -1,11 +1,23 @@
 const { Pool } = require("pg");
 
+// Debug: Check environment variables
+console.log("🔍 Environment check:");
+console.log("DATABASE_URL:", process.env.DATABASE_URL ? "✓ Set" : "✗ Missing");
+console.log("DATABASE_CA_CERT:", process.env.DATABASE_CA_CERT ? "✓ Set" : "✗ Missing");
+
+if (!process.env.DATABASE_CA_CERT) {
+  console.warn("⚠️  DATABASE_CA_CERT is not set!");
+  console.warn("📝 Add this environment variable in App Platform:");
+  console.warn("   Key: DATABASE_CA_CERT");
+  console.warn("   Value: ${your-db-name.CA_CERT}");
+}
+
 // Create a single pool instance (reuse throughout app lifecycle)
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: true,
-    ca: process.env.DATABASE_CA_CERT,  // Auto-injected by App Platform
+    ca: process.env.DATABASE_CA_CERT,  // Must be configured in App Platform
   },
   // Optional pool configuration
   max: 20,                    // Maximum connections in pool
