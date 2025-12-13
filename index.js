@@ -7,12 +7,19 @@ console.log("DATABASE_CA_CERT present:", !!process.env.DATABASE_CA_CERT);
 console.log("DATABASE_CA_CERT length:", process.env.DATABASE_CA_CERT?.length || 0);
 
 // Parse DATABASE_URL to check for conflicting SSL parameters
+let cleanConnectionString = process.env.DATABASE_URL;
 if (process.env.DATABASE_URL) {
   const url = new URL(process.env.DATABASE_URL);
   console.log("DB Host:", url.hostname);
   console.log("DB Port:", url.port);
   console.log("DB Name:", url.pathname.substring(1));
-  console.log("URL Search Params:", url.search); // Shows sslmode etc
+  console.log("Original URL Search Params:", url.search);
+
+  // Remove SSL-related query parameters to avoid conflicts
+  // We'll use programmatic SSL config instead
+  url.search = '';
+  cleanConnectionString = url.toString();
+  console.log("Cleaned URL (SSL params removed)");
 }
 
 // SSL configuration for DigitalOcean managed databases
@@ -26,7 +33,7 @@ console.log("======================================");
 
 // Create a single pool instance (reuse throughout app lifecycle)
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: cleanConnectionString,
   ssl: sslConfig,
   // Optional pool configuration
   max: 20,                    // Maximum connections in pool
