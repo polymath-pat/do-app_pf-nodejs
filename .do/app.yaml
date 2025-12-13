@@ -1,0 +1,24 @@
+name: do-app-pf-nodejs
+region: nyc
+
+services:
+  - name: web
+    github:
+      repo: polymath-pat/do-app_pf-nodejs
+      branch: main
+      deploy_on_push: true
+
+    run_command: npm start
+
+    envs:
+      - key: DATABASE_CA_CERT
+        scope: RUN_TIME
+        value: ${db.CA_CERT}
+
+    instance_count: 1
+    instance_size_slug: basic-xxs
+
+databases:
+  - name: db
+    engine: PG
+    production: true

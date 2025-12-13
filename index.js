@@ -1,40 +1,11 @@
 const { Pool } = require("pg");
 
-// Debug: Check environment variables
-console.log("🔍 Environment check:");
-console.log("DATABASE_URL:", process.env.DATABASE_URL ? "✓ Set" : "✗ Missing");
-console.log("DATABASE_CA_CERT:", process.env.DATABASE_CA_CERT ? `✓ Set (${process.env.DATABASE_CA_CERT.length} chars)` : "✗ Missing");
-
-// Log first 100 chars of CA cert for debugging (if set)
-if (process.env.DATABASE_CA_CERT) {
-  console.log("CA_CERT preview:", process.env.DATABASE_CA_CERT.substring(0, 100));
-  console.log("Checking for literal \\n:", process.env.DATABASE_CA_CERT.includes('\\n') ? "Found (needs fixing)" : "Not found");
-} else {
-  console.warn("⚠️  DATABASE_CA_CERT is not set!");
-  console.warn("📝 Add this environment variable in App Platform:");
-  console.warn("   Key: DATABASE_CA_CERT");
-  console.warn("   Value: ${your-db-name.CA_CERT}");
-}
-
-// Build SSL configuration
-let caCert = process.env.DATABASE_CA_CERT;
-
-// Fix: Replace literal \n with actual newlines if needed
-if (caCert && caCert.includes('\\n')) {
-  console.log("🔧 Fixing literal \\n characters in CA cert");
-  caCert = caCert.replace(/\\n/g, '\n');
-}
-
-// DigitalOcean managed databases use self-signed certificates
-// Even with the CA cert, we need to be more permissive
+// SSL configuration for DigitalOcean managed databases
+// Uses CA cert from environment variable (configured in .do/app.yaml)
 const sslConfig = {
   rejectUnauthorized: false,  // Required for DigitalOcean's self-signed CA
-  ca: caCert,  // Still provide CA for additional validation
+  ca: process.env.DATABASE_CA_CERT,  // Provided via app spec
 };
-
-console.log("SSL config: Using CA cert with rejectUnauthorized: false (DigitalOcean requirement)");
-console.log("CA cert starts with BEGIN?", caCert?.startsWith('-----BEGIN CERTIFICATE-----'));
-console.log("CA cert ends with END?", caCert?.endsWith('-----END CERTIFICATE-----\n') || caCert?.endsWith('-----END CERTIFICATE-----'));
 
 // Create a single pool instance (reuse throughout app lifecycle)
 const pool = new Pool({

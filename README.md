@@ -32,20 +32,9 @@ Fork or upload the contents of this repository to your own GitHub account.
 5. Select your Managed PostgreSQL cluster
    > This automatically injects `DATABASE_URL` and adds Trusted Sources.
 
-### 3. Configure Environment Variables
+**OR** use the included `.do/app.yaml` spec file which automatically configures everything!
 
-**IMPORTANT:** You must manually add the database CA certificate variable:
-
-1. Go to **Settings** → **App-Level Environment Variables** (or component settings)
-2. Click **Edit**
-3. Add a new environment variable:
-   - **Key:** `DATABASE_CA_CERT`
-   - **Value:** `${db.CA_CERT}` (or `${your-db-name.CA_CERT}` if your database has a different name)
-4. Click **Save**
-
-> **Note:** Find your database component name in the **Resources** tab.
-
-### 4. Deploy
+### 3. Deploy (Automatic with App Spec)
 
 Click **Deploy** and wait for the build to complete.
 
@@ -67,14 +56,7 @@ Local testing requires your machine's IP to be added as a **Trusted Source** for
 npm install
 ```
 
-### Download the CA Certificate
-
-1. Go to **DigitalOcean → Databases**
-2. Select your PostgreSQL cluster
-3. On the **Overview** page, scroll to **Connection Details**
-4. Click **Download CA certificate**
-
-### Run the app with environment variables:
+### Run the app:
 
 ```bash
 DATABASE_URL="postgres://USER:PASSWORD@HOST:25060/defaultdb?sslmode=require" \
@@ -82,7 +64,7 @@ DATABASE_CA_CERT="$(cat /path/to/ca-certificate.crt)" \
 npm start
 ```
 
-Replace `/path/to/ca-certificate.crt` with the actual path to your downloaded certificate.
+Download the CA certificate from your database cluster's Overview page.
 
 ---
 
@@ -91,11 +73,13 @@ Replace `/path/to/ca-certificate.crt` with the actual path to your downloaded ce
 This application demonstrates DigitalOcean best practices:
 
 - **Connection Pooling**: Uses `pg.Pool` instead of `Client` for reusing connections
-- **Environment-based Configuration**: Leverages `DATABASE_CA_CERT` auto-injected by App Platform
+- **Infrastructure as Code**: Includes `.do/app.yaml` spec file for declarative deployments
+- **Automatic SSL Configuration**: CA certificate configured via app spec (no manual UI setup!)
 - **Proper Error Handling**: Pool-level error listeners and client release in finally blocks
 - **Production-ready Settings**: Configured with appropriate timeouts and connection limits
 
 Notes:
 * This project is intended primarily as a connectivity test or template.
-* DigitalOcean automatically sets `DATABASE_URL` and `DATABASE_CA_CERT` for App Platform services that use a linked Managed Database.
+* DigitalOcean automatically sets `DATABASE_URL` for App Platform services that use a linked Managed Database.
+* The `.do/app.yaml` file automatically configures the `DATABASE_CA_CERT` environment variable - no manual configuration needed!
 * For production apps, extend this pattern with routers, health checks, and additional middleware.

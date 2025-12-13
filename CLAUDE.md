@@ -57,7 +57,7 @@ The application requires two environment variables:
 
 On **DigitalOcean App Platform**:
 - `DATABASE_URL` is automatically injected when a Managed Database is linked
-- `DATABASE_CA_CERT` must be manually configured as an environment variable using the bindable syntax: `${your-db-name.CA_CERT}` (replace `your-db-name` with your actual database component name)
+- `DATABASE_CA_CERT` is configured via the `.do/app.yaml` spec file (no manual UI configuration needed!)
 
 For **local testing**:
 - Your IP must be added as a Trusted Source in the DigitalOcean database settings
@@ -66,22 +66,27 @@ For **local testing**:
 
 ## TLS/SSL Configuration
 
-The application uses DigitalOcean's CA certificate provided via the `DATABASE_CA_CERT` environment variable. This follows DigitalOcean's official best practice for App Platform deployments.
+The application uses DigitalOcean's CA certificate provided via the `DATABASE_CA_CERT` environment variable. This is automatically configured through the `.do/app.yaml` app spec file.
 
-**Setting up DATABASE_CA_CERT in App Platform:**
-1. Go to your app's **Settings** → **Environment Variables**
-2. Add a new variable:
-   - Key: `DATABASE_CA_CERT`
-   - Value: `${your-db-name.CA_CERT}` (e.g., `${db.CA_CERT}`)
-3. Replace `your-db-name` with your actual database component name from the Resources tab
+**App Spec Approach (Recommended):**
+The `.do/app.yaml` file declaratively defines the environment variable:
+```yaml
+envs:
+  - key: DATABASE_CA_CERT
+    scope: RUN_TIME
+    value: ${db.CA_CERT}
+```
 
-**Why environment variables instead of files?**
+This means you don't need to manually configure environment variables through the control panel - just push your code and App Platform uses the spec file automatically.
+
+**Why this approach?**
+- Infrastructure as Code - configuration is version controlled
+- No manual UI configuration required
 - Automatically updated by DigitalOcean when certificates rotate
-- No need to commit sensitive/environment-specific files to the repository
 - Works seamlessly across different database clusters
 - Follows the 12-factor app methodology
 
-The SSL configuration is in `index.js:18-20`.
+The SSL configuration is in `index.js:3-7`.
 
 ## Connection Pooling
 
