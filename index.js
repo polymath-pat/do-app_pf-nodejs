@@ -1,9 +1,10 @@
 const { Pool } = require("pg");
 
 // SSL configuration for DigitalOcean managed databases
-// Using rejectUnauthorized: false to bypass self-signed cert validation
+// Uses CA cert from DATABASE_CA_CERT environment variable
 const sslConfig = {
-  rejectUnauthorized: false,  // Skip certificate validation for DigitalOcean's CA
+  rejectUnauthorized: true,  // Validate certificate against provided CA
+  ca: process.env.DATABASE_CA_CERT,  // DigitalOcean's CA cert (from app spec)
 };
 
 // Create a single pool instance (reuse throughout app lifecycle)
