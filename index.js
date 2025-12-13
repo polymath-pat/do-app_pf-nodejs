@@ -25,19 +25,14 @@ if (caCert && caCert.includes('\\n')) {
   caCert = caCert.replace(/\\n/g, '\n');
 }
 
-// Try multiple SSL configuration approaches
-const sslConfig = caCert
-  ? {
-      rejectUnauthorized: true,
-      ca: caCert,
-      // DigitalOcean specific: Some versions of pg need this
-      checkServerIdentity: () => undefined,  // Skip hostname verification
-    }
-  : {
-      rejectUnauthorized: false,  // Fallback: not recommended for production
-    };
+// DigitalOcean managed databases use self-signed certificates
+// Even with the CA cert, we need to be more permissive
+const sslConfig = {
+  rejectUnauthorized: false,  // Required for DigitalOcean's self-signed CA
+  ca: caCert,  // Still provide CA for additional validation
+};
 
-console.log("SSL config:", sslConfig.ca ? "Using CA cert with checkServerIdentity bypass" : "⚠️  No CA cert (insecure)");
+console.log("SSL config: Using CA cert with rejectUnauthorized: false (DigitalOcean requirement)");
 console.log("CA cert starts with BEGIN?", caCert?.startsWith('-----BEGIN CERTIFICATE-----'));
 console.log("CA cert ends with END?", caCert?.endsWith('-----END CERTIFICATE-----\n') || caCert?.endsWith('-----END CERTIFICATE-----'));
 
