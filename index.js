@@ -3,22 +3,34 @@ const { Pool } = require("pg");
 // Debug: Check environment variables
 console.log("🔍 Environment check:");
 console.log("DATABASE_URL:", process.env.DATABASE_URL ? "✓ Set" : "✗ Missing");
-console.log("DATABASE_CA_CERT:", process.env.DATABASE_CA_CERT ? "✓ Set" : "✗ Missing");
+console.log("DATABASE_CA_CERT:", process.env.DATABASE_CA_CERT ? `✓ Set (${process.env.DATABASE_CA_CERT.length} chars)` : "✗ Missing");
 
-if (!process.env.DATABASE_CA_CERT) {
+// Log first 100 chars of CA cert for debugging (if set)
+if (process.env.DATABASE_CA_CERT) {
+  console.log("CA_CERT preview:", process.env.DATABASE_CA_CERT.substring(0, 100));
+} else {
   console.warn("⚠️  DATABASE_CA_CERT is not set!");
   console.warn("📝 Add this environment variable in App Platform:");
   console.warn("   Key: DATABASE_CA_CERT");
   console.warn("   Value: ${your-db-name.CA_CERT}");
 }
 
+// Build SSL configuration
+const sslConfig = process.env.DATABASE_CA_CERT
+  ? {
+      rejectUnauthorized: true,
+      ca: process.env.DATABASE_CA_CERT,
+    }
+  : {
+      rejectUnauthorized: false,  // Fallback: not recommended for production
+    };
+
+console.log("SSL config:", sslConfig.ca ? "Using CA cert" : "⚠️  No CA cert (insecure)");
+
 // Create a single pool instance (reuse throughout app lifecycle)
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: true,
-    ca: process.env.DATABASE_CA_CERT,  // Must be configured in App Platform
-  },
+  ssl: sslConfig,
   // Optional pool configuration
   max: 20,                    // Maximum connections in pool
   idleTimeoutMillis: 30000,   // Close idle clients after 30s
