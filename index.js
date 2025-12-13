@@ -8,6 +8,7 @@ console.log("DATABASE_CA_CERT:", process.env.DATABASE_CA_CERT ? `✓ Set (${proc
 // Log first 100 chars of CA cert for debugging (if set)
 if (process.env.DATABASE_CA_CERT) {
   console.log("CA_CERT preview:", process.env.DATABASE_CA_CERT.substring(0, 100));
+  console.log("Checking for literal \\n:", process.env.DATABASE_CA_CERT.includes('\\n') ? "Found (needs fixing)" : "Not found");
 } else {
   console.warn("⚠️  DATABASE_CA_CERT is not set!");
   console.warn("📝 Add this environment variable in App Platform:");
@@ -16,10 +17,18 @@ if (process.env.DATABASE_CA_CERT) {
 }
 
 // Build SSL configuration
-const sslConfig = process.env.DATABASE_CA_CERT
+let caCert = process.env.DATABASE_CA_CERT;
+
+// Fix: Replace literal \n with actual newlines if needed
+if (caCert && caCert.includes('\\n')) {
+  console.log("🔧 Fixing literal \\n characters in CA cert");
+  caCert = caCert.replace(/\\n/g, '\n');
+}
+
+const sslConfig = caCert
   ? {
       rejectUnauthorized: true,
-      ca: process.env.DATABASE_CA_CERT,
+      ca: caCert,
     }
   : {
       rejectUnauthorized: false,  // Fallback: not recommended for production
