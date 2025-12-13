@@ -1,14 +1,28 @@
 const { Pool } = require("pg");
 
-// SSL configuration for DigitalOcean managed databases
-// Uses CA cert from DATABASE_CA_CERT environment variable
-console.log("DATABASE_CA_CERT length:", process.env.DATABASE_CA_CERT?.length || 0);
+// Debug output (safe - no sensitive data)
+console.log("=== Database Connection Debug Info ===");
+console.log("DATABASE_URL present:", !!process.env.DATABASE_URL);
 console.log("DATABASE_CA_CERT present:", !!process.env.DATABASE_CA_CERT);
+console.log("DATABASE_CA_CERT length:", process.env.DATABASE_CA_CERT?.length || 0);
 
+// Parse DATABASE_URL to check for conflicting SSL parameters
+if (process.env.DATABASE_URL) {
+  const url = new URL(process.env.DATABASE_URL);
+  console.log("DB Host:", url.hostname);
+  console.log("DB Port:", url.port);
+  console.log("DB Name:", url.pathname.substring(1));
+  console.log("URL Search Params:", url.search); // Shows sslmode etc
+}
+
+// SSL configuration for DigitalOcean managed databases
 const sslConfig = {
   rejectUnauthorized: true,  // Validate certificate against provided CA
   ca: process.env.DATABASE_CA_CERT,  // DigitalOcean's CA cert (from app spec)
 };
+
+console.log("SSL Config:", { rejectUnauthorized: sslConfig.rejectUnauthorized, caPresent: !!sslConfig.ca });
+console.log("======================================");
 
 // Create a single pool instance (reuse throughout app lifecycle)
 const pool = new Pool({

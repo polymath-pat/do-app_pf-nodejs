@@ -1,5 +1,6 @@
 name: do-app-pf-nodejs
-region: nyc
+region: sfo
+project_id: 021c4da8-a273-4360-b068-f1fd1a03b3d2
 
 services:
   - name: web
@@ -25,3 +26,4 @@ databases:
   - name: db
     engine: PG
     production: true
+    cluster_name: db-postgresql-sfo3-93898
