@@ -1,6 +1,5 @@
-name: do-app-pf-nodejs
+name: squidward
 region: sfo
-project_id: 021c4da8-a273-4360-b068-f1fd1a03b3d2
 
 services:
   - name: web

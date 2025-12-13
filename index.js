@@ -1,25 +1,17 @@
 const { Pool } = require("pg");
+const express = require("express");
 
-// Debug output (safe - no sensitive data)
-console.log("=== Database Connection Debug Info ===");
-console.log("DATABASE_URL present:", !!process.env.DATABASE_URL);
-console.log("DATABASE_CA_CERT present:", !!process.env.DATABASE_CA_CERT);
-console.log("DATABASE_CA_CERT length:", process.env.DATABASE_CA_CERT?.length || 0);
+const app = express();
+const PORT = process.env.PORT || 8080;
 
-// Parse DATABASE_URL to check for conflicting SSL parameters
+// Parse DATABASE_URL to remove conflicting SSL parameters
 let cleanConnectionString = process.env.DATABASE_URL;
 if (process.env.DATABASE_URL) {
   const url = new URL(process.env.DATABASE_URL);
-  console.log("DB Host:", url.hostname);
-  console.log("DB Port:", url.port);
-  console.log("DB Name:", url.pathname.substring(1));
-  console.log("Original URL Search Params:", url.search);
-
   // Remove SSL-related query parameters to avoid conflicts
   // We'll use programmatic SSL config instead
   url.search = '';
   cleanConnectionString = url.toString();
-  console.log("Cleaned URL (SSL params removed)");
 }
 
 // SSL configuration for DigitalOcean managed databases
@@ -27,9 +19,6 @@ const sslConfig = {
   rejectUnauthorized: true,  // Validate certificate against provided CA
   ca: process.env.DATABASE_CA_CERT,  // DigitalOcean's CA cert (from app spec)
 };
-
-console.log("SSL Config:", { rejectUnauthorized: sslConfig.rejectUnauthorized, caPresent: !!sslConfig.ca });
-console.log("======================================");
 
 // Create a single pool instance (reuse throughout app lifecycle)
 const pool = new Pool({
@@ -46,21 +35,45 @@ pool.on('error', (err) => {
   console.error('Unexpected pool error:', err);
 });
 
-async function testConnection() {
-  const client = await pool.connect();
+// Health check endpoint
+app.get("/", (req, res) => {
+  res.json({
+    status: "healthy",
+    message: "DigitalOcean App Platform + Managed PostgreSQL",
+    timestamp: new Date().toISOString()
+  });
+});
 
+// Database connection test endpoint
+app.get("/db-test", async (req, res) => {
+  let client;
   try {
-    console.log("Connecting to DigitalOcean Managed Database...");
-    const result = await client.query("SELECT NOW()");
-    console.log("✅ Connected successfully!");
-    console.log("⏱ DB Time:", result.rows[0]);
-  } catch (err) {
-    console.error("❌ Connection failed:");
-    console.error(err);
-  } finally {
-    client.release();  // Always release client back to pool
-    console.log("🔌 Connection released.");
-  }
-}
+    client = await pool.connect();
+    const result = await client.query("SELECT NOW(), version() as pg_version");
 
-testConnection();
+    res.json({
+      status: "success",
+      message: "Database connection successful",
+      data: {
+        timestamp: result.rows[0].now,
+        postgresVersion: result.rows[0].pg_version
+      }
+    });
+  } catch (err) {
+    console.error("Database connection error:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Database connection failed",
+      error: err.message
+    });
+  } finally {
+    if (client) client.release();
+  }
+});
+
+// Start the server
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📊 Health check: http://localhost:${PORT}/`);
+  console.log(`🔍 Database test: http://localhost:${PORT}/db-test`);
+});
