@@ -6,6 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a minimal Node.js application that tests secure connectivity between DigitalOcean App Platform and DigitalOcean Managed PostgreSQL databases. It demonstrates best practices for database connections using connection pooling and environment-based SSL configuration.
 
+**Requirements:**
+- Node.js >= 24.12.0 (LTS)
+
 ## Architecture
 
 The application consists of a single entry point (`index.js`) that:
