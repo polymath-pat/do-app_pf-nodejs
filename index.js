@@ -2,6 +2,9 @@ const { Pool } = require("pg");
 
 // SSL configuration for DigitalOcean managed databases
 // Uses CA cert from DATABASE_CA_CERT environment variable
+console.log("DATABASE_CA_CERT length:", process.env.DATABASE_CA_CERT?.length || 0);
+console.log("DATABASE_CA_CERT present:", !!process.env.DATABASE_CA_CERT);
+
 const sslConfig = {
   rejectUnauthorized: true,  // Validate certificate against provided CA
   ca: process.env.DATABASE_CA_CERT,  // DigitalOcean's CA cert (from app spec)
